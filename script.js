@@ -12,6 +12,14 @@ function createMatrix(width, height) {
 }
 
 
+// テトリスの描画
+function draw() {
+    context.fillStyle = '#000';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    drawMatrix(arena, { x: 0, y: 0 });
+    drawMatrix(player.matrix, player.pos);
+}
 
 // テトリミノの形状と色の定義
 const tetriminos = [
