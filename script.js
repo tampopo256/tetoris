@@ -11,26 +11,48 @@ function createMatrix(width, height) {
     return matrix;
 }
 
-// テトリミノの形状
+
+
+// テトリミノの形状と色の定義
 const tetriminos = [
     [
-        [0, 0, 0],
-        [1, 1, 1],
-        [0, 1, 0],
-    ],
+        [0, 0, 0, 0],
+        [1, 1, 1, 1],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]
+    ], // Iテトリミノ
     [
-        [2, 2],
-        [2, 2],
-    ],
+        [2, 0, 0],
+        [2, 2, 2],
+        [0, 0, 0]
+    ], // Jテトリミノ
     [
-        [0, 3, 3],
-        [3, 3, 0],
-        [0, 0, 0],
-    ],
-    // 他のテトリミノの形状もここに追加できます
+        [3, 3],
+        [3, 3]
+    ], // Oテトリミノ
+    [
+        [0, 4, 0],
+        [4, 4, 4],
+        [0, 0, 0]
+    ], // Tテトリミノ
+    [
+        [0, 5, 5],
+        [5, 5, 0],
+        [0, 0, 0]
+    ], // Lテトリミノ
+    [
+        [0, 6, 6],
+        [6, 6, 0],
+        [0, 0, 0]
+    ], // Sテトリミノ
+    [
+        [7, 7, 0],
+        [0, 7, 7],
+        [0, 0, 0]
+    ] // Zテトリミノ
 ];
 
-// テトリスのカラーパレット
+// テトリミノのカラーパレット
 const colors = [
     null,
     '#FF0D72',
@@ -42,26 +64,20 @@ const colors = [
     '#3877FF',
 ];
 
-// テトリスの描画
-function draw() {
-    context.fillStyle = '#000';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    drawMatrix(arena, { x: 0, y: 0 });
-    drawMatrix(player.matrix, player.pos);
+// テトリミノの生成
+function createTetrimino() {
+    const randomTetrimino = tetriminos[Math.floor(Math.random() * tetriminos.length)];
+    const tetrimino = {
+        matrix: randomTetrimino,
+        color: colors[tetriminos.indexOf(randomTetrimino)]
+    };
+    return tetrimino;
 }
 
-// マトリックスの描画
-function drawMatrix(matrix, offset) {
-    matrix.forEach((row, y) => {
-        row.forEach((value, x) => {
-            if (value !== 0) {
-                context.fillStyle = colors[value];
-                context.fillRect(x + offset.x, y + offset.y, 1, 1);
-            }
-        });
-    });
-}
+// テトリミノの初期化
+let tetrimino = createTetrimino();
+
+
 
 // テトリミノの衝突判定
 function collide(arena, player) {
@@ -198,5 +214,44 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
+// テトリミノの回転処理
+function rotate(matrix, direction) {
+    const m = matrix;
+    const len = m.length;
+    const temp = [...Array(len)].map((_) => Array(len).fill(0));
+
+    for (let i = 0; i < len; ++i) {
+        for (let j = 0; j < len; ++j) {
+            if (direction === 1) {
+                temp[i][j] = m[len - j - 1][i];
+            } else {
+                temp[i][j] = m[j][len - i - 1];
+            }
+        }
+    }
+
+    return temp;
+}
+
+// テトリミノの回転処理
+function playerRotate(direction) {
+    const pos = player.pos.x;
+    let offset = 1;
+    const rotated = rotate(player.matrix, direction);
+    player.matrix = rotated;
+
+    while (collide(arena, player)) {
+        player.pos.x += offset;
+        offset = -(offset + (offset > 0 ? 1 : -1));
+        if (offset > player.matrix[0].length) {
+            rotate(player.matrix, -direction);
+            player.pos.x = pos;
+            return;
+        }
+    }
+}
+
+
 playerReset();
 update();
+
